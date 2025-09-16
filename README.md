@@ -346,7 +346,7 @@ For detailed architecture documentation, data flow diagrams, and technical speci
 ### Latest Features (v1.2.0)
 
 #### 🔍 Enhanced Search System
-- **TiDB Integration**: Migrated from Appwrite to TiDB for faster, more reliable search
+- **TiDB Integration**:  TiDB for faster, more reliable search
 - **Multi-Content Search**: Search across documents, folders, and quiz results simultaneously
 - **User ID Mapping**: Proper authentication and user data isolation
 - **Workspace Scoping**: Search results automatically scoped to user's workspace
