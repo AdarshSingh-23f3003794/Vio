@@ -360,57 +360,53 @@ Plans to implement vector search for improved semantic similarity
 **Gemini AI**: Content summarization and analysis (gemini-2.0-flash-exp)
 **Text-to-Speech**: Browser-based speech synthesis for listening tests
 
-## Getting Started
 
-### Prerequisites
+## Data Flow & Integrations Summary
 
-Node.js 18+
-TiDB Cloud account
-Appwrite account
-Groq API key (primary) OR OpenAI API key (fallback)
-Google Generative AI API key (for Gemini)
-
-### Installation
-
-Clone the repository:
-
-```bash
-git clone <repository-url>
-cd Vio
+### Data Flow Architecture
+```
+User Upload → Content Processing → TiDB Storage → AI Analysis → User Interface
 ```
 
-Install dependencies:
+**1. Content Ingestion**
+- Users upload documents, images, YouTube videos, or web links
+- Content is processed through specialized extractors (PDF parsing, OCR, transcript extraction, web scraping)
+- Files are stored in Appwrite storage while metadata goes to TiDB
 
-```bash
-npm install
-```
+**2. AI Processing Pipeline**
+- Content is analyzed and indexed in TiDB for search
+- AI models (Groq/OpenAI/Gemini) process content for summaries, quizzes, and learning paths
+- Multi-model fallback system ensures reliability
 
-Set up environment variables:
+**3. User Interaction**
+- TiDB powers semantic search across all content
+- AI generates contextual responses based on retrieved content
+- Learning analytics and progress tracking stored in TiDB
 
-```bash
-cp .env.example .env.local
-```
+### Key Integrations
 
-Update the .env.local file with your:
+**Database Layer:**
+- **TiDB Serverless** - Primary database for content, search, and analytics
+- **Appwrite** - Authentication and file storage
 
-Appwrite credentials
-TiDB connection string
-Groq API key (or OpenAI API key)
-Google Generative AI API key
-Tavily API Key
-Firecrawl API Key
+**AI Services:**
+- **Groq API** - Primary AI model (llama-3.1-8b-instant)
+- **OpenAI API** - Fallback AI model (gpt-3.5-turbo)
+- **Google Gemini** - Content summarization and analysis
+- **Tavily API** - Web search integration
 
-Run database setup:
+**Content Processing:**
+- **Firecrawl** - Web content scraping
+- **Tesseract.js** - OCR for images
+- **FFmpeg** - Video processing
+- **PDF-parse/Mammoth** - Document text extraction
 
-```bash
-npm run setup:tidb
-```
+**Frontend:**
+- **Next.js 14** - React framework
+- **Tailwind CSS** - Styling
+- **Radix UI** - Component library
 
-Start the development server:
-
-```bash
-npm run dev
-```
+This architecture enables seamless content processing, intelligent search, and personalized learning experiences across all content types.
 
 ## Usage
 
@@ -477,6 +473,58 @@ Real-world problem solving: Enables personalized learning experiences from diver
 **API Reliability**: Improved error handling and user feedback
 **Performance**: Optimized database queries and response times
 **Security**: Enhanced user authentication and data protection
+
+## Getting Started
+
+### Prerequisites
+
+Node.js 18+
+TiDB Cloud account
+Appwrite account
+Groq API key (primary) OR OpenAI API key (fallback)
+Google Generative AI API key (for Gemini)
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd Vio
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Set up environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+Update the .env.local file with your:
+
+Appwrite credentials
+TiDB connection string
+Groq API key (or OpenAI API key)
+Google Generative AI API key
+Tavily API Key
+Firecrawl API Key
+
+Run database setup:
+
+```bash
+npm run setup:tidb
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
 
 ### Bug Fixes
 Fixed search functionality returning 0 results
