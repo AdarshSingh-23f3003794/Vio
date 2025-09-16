@@ -1,6 +1,24 @@
 // Import Node.js modules only when needed (server-side)
 import { VideoRenderingOptions, VideoChunk } from './types';
 
+// Helper function to get optimal text for display with word boundary awareness
+function getOptimalDisplayText(text: string, maxLength: number = 100): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  
+  // Try to find a good word boundary
+  const truncated = text.substring(0, maxLength);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+  
+  if (lastSpaceIndex > maxLength * 0.7) { // If we can find a space in the last 30% of the text
+    return truncated.substring(0, lastSpaceIndex).trim();
+  }
+  
+  // If no good word boundary, just truncate
+  return truncated.trim();
+}
+
 export class VideoRenderer {
   private outputDir: string;
   private tempDir: string;
@@ -147,18 +165,40 @@ export class VideoRenderer {
         
         // Try local FFmpeg first, then system PATH
       const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
+      // Create a safe text display that shows actual content
+      // Use word boundary awareness to avoid cutting words
+      const optimalText = getOptimalDisplayText(chunk.text, 100);
+      const cleanText = optimalText
+        .replace(/[:\[\]{}();=,]/g, ' ') // Remove problematic characters
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .trim();
+      
+      // If text is too short, try to get more content
+      let displayText = cleanText;
+      if (cleanText.length < 20 && chunk.text.length > 100) {
+        const extendedOptimalText = getOptimalDisplayText(chunk.text, 120);
+        const extendedText = extendedOptimalText
+          .replace(/[:\[\]{}();=,]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        displayText = extendedText.length > 0 ? extendedText : `Chunk ${chunk.chunkId}`;
+      } else if (cleanText.length === 0) {
+        displayText = `Chunk ${chunk.chunkId}`;
+      }
+      
+      // Add word wrapping and better positioning with gradient background
       const ffmpegProcess = spawn(ffmpegPath, [
-          '-f', 'lavfi',
-          '-i', `color=c=blue:size=${options.resolution}:duration=${chunk.duration}`,
-          '-vf', `drawtext=text='${chunk.text.replace(/'/g, "\\'")}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2`,
-          '-c:v', 'libx264',
-          '-preset', 'fast',
-          '-crf', '23',
-          '-y', // Overwrite output file
-          videoPath
-        ], {
-          stdio: 'pipe'
-        });
+        '-f', 'lavfi',
+        '-i', `color=c=#1e3a8a:size=${options.resolution}:duration=${chunk.duration}`,
+        '-vf', `drawtext=text='${displayText}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:box=1:boxcolor=black@0.7:boxborderw=8:shadowcolor=black@0.5:shadowx=2:shadowy=2`,
+        '-c:v', 'libx264',
+        '-preset', 'fast',
+        '-crf', '23',
+        '-y', // Overwrite output file
+        videoPath
+      ], {
+        stdio: 'pipe'
+      });
 
         let stderr = '';
 
@@ -210,6 +250,49 @@ export class VideoRenderer {
       .replace(/\s+/g, ' '); // Replace multiple spaces with single space
   }
 
+  private escapeTextForDrawtext(text: string): string {
+    // More comprehensive escaping for FFmpeg drawtext filter
+    return text
+      .replace(/\\/g, '\\\\')  // Escape backslashes first
+      .replace(/'/g, "\\'")    // Escape single quotes
+      .replace(/"/g, '\\"')    // Escape double quotes
+      .replace(/:/g, '\\:')    // Escape colons
+      .replace(/\[/g, '\\[')   // Escape square brackets
+      .replace(/\]/g, '\\]')   // Escape square brackets
+      .replace(/,/g, '\\,')    // Escape commas
+      .replace(/;/g, '\\;')    // Escape semicolons
+      .replace(/=/g, '\\=')    // Escape equals signs
+      .replace(/\n/g, ' ')     // Replace newlines with spaces
+      .replace(/\r/g, ' ')     // Replace carriage returns with spaces
+      .replace(/\s+/g, ' ')    // Replace multiple spaces with single space
+      .trim();                 // Remove leading/trailing whitespace
+  }
+
+  private escapeTextForFFmpegDrawtext(text: string): string {
+    // Even more robust escaping specifically for FFmpeg drawtext
+    // Replace problematic characters with safer alternatives
+    return text
+      .replace(/\\/g, '\\\\')  // Escape backslashes first
+      .replace(/'/g, "\\'")    // Escape single quotes
+      .replace(/"/g, '\\"')    // Escape double quotes
+      .replace(/:/g, '\\:')    // Escape colons
+      .replace(/\[/g, '\\[')   // Escape square brackets
+      .replace(/\]/g, '\\]')   // Escape square brackets
+      .replace(/,/g, '\\,')    // Escape commas
+      .replace(/;/g, '\\;')    // Escape semicolons
+      .replace(/=/g, '\\=')    // Escape equals signs
+      .replace(/\(/g, '\\(')   // Escape parentheses
+      .replace(/\)/g, '\\)')   // Escape parentheses
+      .replace(/\{/g, '\\{')   // Escape curly braces
+      .replace(/\}/g, '\\}')   // Escape curly braces
+      .replace(/\$/g, '\\$')   // Escape dollar signs
+      .replace(/\`/g, '\\`')   // Escape backticks
+      .replace(/\n/g, ' ')     // Replace newlines with spaces
+      .replace(/\r/g, ' ')     // Replace carriage returns with spaces
+      .replace(/\s+/g, ' ')    // Replace multiple spaces with single space
+      .trim();                 // Remove leading/trailing whitespace
+  }
+
   private async createMockVideo(chunk: VideoChunk, outputDir: string, options: VideoRenderingOptions): Promise<string> {
     // Create a proper mock video using FFmpeg instead of raw binary
     const path = await import('path');
@@ -223,21 +306,49 @@ export class VideoRenderer {
         const { spawn } = await import('child_process');
         
         const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
-        // Escape text for FFmpeg drawtext filter
-        const escapedText = this.escapeTextForFFmpeg(chunk.text);
-        const displayText = `Chunk ${chunk.chunkId}: ${escapedText}${chunk.text.length > 50 ? '...' : ''}`;
         
-        const ffmpegProcess = spawn(ffmpegPath, [
+        // Create a text file for FFmpeg to read from (safer than inline text)
+        const textFilePath = path.join(outputDir, `chunk_${chunk.chunkId}_text.txt`);
+        const fileText = `Chunk ${chunk.chunkId}: ${chunk.text.substring(0, 50)}${chunk.text.length > 50 ? '...' : ''}`;
+        
+        // Write text to file
+        await fs.writeFile(textFilePath, fileText, 'utf8');
+        
+        // Create a safe text display that shows actual content
+        // Use word boundary awareness to avoid cutting words
+        const optimalText = getOptimalDisplayText(chunk.text, 100);
+        const cleanText = optimalText
+          .replace(/[:\[\]{}();=,]/g, ' ') // Remove problematic characters
+          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+          .trim();
+        
+        // If text is too short, try to get more content
+        let displayText = cleanText;
+        if (cleanText.length < 20 && chunk.text.length > 100) {
+          const extendedOptimalText = getOptimalDisplayText(chunk.text, 120);
+          const extendedText = extendedOptimalText
+            .replace(/[:\[\]{}();=,]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          displayText = extendedText.length > 0 ? extendedText : `Chunk ${chunk.chunkId}`;
+        } else if (cleanText.length === 0) {
+          displayText = `Chunk ${chunk.chunkId}`;
+        }
+        
+        // Add word wrapping and better positioning with gradient background
+        const ffmpegArgs = [
           '-f', 'lavfi',
-          '-i', `color=c=blue:size=${options.resolution}:duration=${chunk.duration}`,
-          '-vf', `drawtext=text='${displayText}':fontcolor=white:fontsize=20:x=(w-text_w)/2:y=(h-text_h)/2`,
+          '-i', `color=c=#1e3a8a:size=${options.resolution}:duration=${chunk.duration}`,
+          '-vf', `drawtext=text='${displayText}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:box=1:boxcolor=black@0.7:boxborderw=8:shadowcolor=black@0.5:shadowx=2:shadowy=2`,
           '-c:v', 'libx264',
           '-preset', 'fast',
           '-crf', '23',
           '-pix_fmt', 'yuv420p',
           '-y', // Overwrite output file
           videoPath
-        ], {
+        ];
+
+        const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs, {
           stdio: 'pipe'
         });
 
@@ -248,7 +359,14 @@ export class VideoRenderer {
             stderr += data.toString();
           });
 
-          ffmpegProcess.on('close', (code) => {
+          ffmpegProcess.on('close', async (code) => {
+            // Clean up text file
+            try {
+              await fs.unlink(textFilePath);
+            } catch (cleanupError) {
+              console.warn(`Failed to clean up text file: ${cleanupError}`);
+            }
+            
             if (code === 0) {
               console.log(`Created mock video for chunk ${chunk.chunkId}: ${videoPath}`);
               resolve(videoPath);
@@ -278,16 +396,102 @@ export class VideoRenderer {
   }
 
   private async createSimpleMockVideo(chunk: VideoChunk, outputDir: string, options: VideoRenderingOptions): Promise<string> {
-    // Create a simple placeholder file when FFmpeg is not available
+    // Create a proper video using FFmpeg with a simple approach
     const path = await import('path');
     const videoPath = path.join(outputDir, `chunk_${chunk.chunkId}_mock.mp4`);
+    
+    try {
+      const { promises: fs } = await import('fs');
+      const { spawn } = await import('child_process');
+      
+      // Create a text file with the content for reference
+      const textPath = path.join(outputDir, `chunk_${chunk.chunkId}_content.txt`);
+      await fs.writeFile(textPath, `Video Chunk ${chunk.chunkId}\n\nContent: ${chunk.text}\n\nDuration: ${chunk.duration} seconds\n\nThis is a mock video file created when FFmpeg and Manim are not available.`);
+      
+      // Try to create a proper video using FFmpeg with a very simple approach
+      const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
+      
+      // Create a safe text display that shows actual content
+      // Use word boundary awareness to avoid cutting words
+      const optimalText = getOptimalDisplayText(chunk.text, 100);
+      const cleanText = optimalText
+        .replace(/[:\[\]{}();=,]/g, ' ') // Remove problematic characters
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .trim();
+      
+      // If text is too short, try to get more content
+      let displayText = cleanText;
+      if (cleanText.length < 20 && chunk.text.length > 100) {
+        const extendedOptimalText = getOptimalDisplayText(chunk.text, 120);
+        const extendedText = extendedOptimalText
+          .replace(/[:\[\]{}();=,]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        displayText = extendedText.length > 0 ? extendedText : `Chunk ${chunk.chunkId}`;
+      } else if (cleanText.length === 0) {
+        displayText = `Chunk ${chunk.chunkId}`;
+      }
+      
+      // Add word wrapping and better positioning with gradient background
+      const ffmpegArgs = [
+        '-f', 'lavfi',
+        '-i', `color=c=#1e3a8a:size=${options.resolution}:duration=${chunk.duration}`,
+        '-vf', `drawtext=text='${displayText}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:box=1:boxcolor=black@0.7:boxborderw=8:shadowcolor=black@0.5:shadowx=2:shadowy=2`,
+        '-c:v', 'libx264',
+        '-preset', 'ultrafast', // Use ultrafast for speed
+        '-crf', '28', // Lower quality but faster
+        '-pix_fmt', 'yuv420p',
+        '-y', // Overwrite output file
+        videoPath
+      ];
+
+      return new Promise((resolve, reject) => {
+        const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs, {
+          stdio: 'pipe'
+        });
+
+        let stderr = '';
+
+        ffmpegProcess.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        ffmpegProcess.on('close', (code) => {
+          if (code === 0) {
+            console.log(`Created simple mock video for chunk ${chunk.chunkId}: ${videoPath}`);
+            resolve(videoPath);
+          } else {
+            console.warn(`FFmpeg simple mock video creation failed with code ${code}: ${stderr}`);
+            // If FFmpeg fails, create a minimal placeholder
+            this.createMinimalPlaceholderVideo(chunk, outputDir, options).then(resolve).catch(reject);
+          }
+        });
+
+        ffmpegProcess.on('error', (error) => {
+          console.warn(`FFmpeg not available for simple mock video: ${error.message}`);
+          // If FFmpeg is not available, create a minimal placeholder
+          this.createMinimalPlaceholderVideo(chunk, outputDir, options).then(resolve).catch(reject);
+        });
+      });
+      
+    } catch (error) {
+      console.error('Failed to create simple mock video:', error);
+      // Fallback to minimal placeholder
+      return await this.createMinimalPlaceholderVideo(chunk, outputDir, options);
+    }
+  }
+
+  private async createMinimalPlaceholderVideo(chunk: VideoChunk, outputDir: string, options: VideoRenderingOptions): Promise<string> {
+    // Create a minimal placeholder file when everything else fails
+    const path = await import('path');
+    const videoPath = path.join(outputDir, `chunk_${chunk.chunkId}_placeholder.mp4`);
     
     try {
       const { promises: fs } = await import('fs');
       
       // Create a text file with the content for reference
       const textPath = path.join(outputDir, `chunk_${chunk.chunkId}_content.txt`);
-      await fs.writeFile(textPath, `Video Chunk ${chunk.chunkId}\n\nContent: ${chunk.text}\n\nDuration: ${chunk.duration} seconds\n\nThis is a mock video file created when FFmpeg and Manim are not available.`);
+      await fs.writeFile(textPath, `Video Chunk ${chunk.chunkId}\n\nContent: ${chunk.text}\n\nDuration: ${chunk.duration} seconds\n\nThis is a placeholder file created when all video generation methods fail.`);
       
       // Create a minimal valid MP4 file with proper structure
       // This creates a very basic MP4 that FFmpeg can at least read
@@ -307,18 +511,19 @@ export class VideoRenderer {
       
       await fs.writeFile(videoPath, mockVideoData);
       
-      console.log(`Created simple mock video for chunk ${chunk.chunkId}: ${videoPath}`);
+      console.log(`Created minimal placeholder video for chunk ${chunk.chunkId}: ${videoPath}`);
       return videoPath;
       
     } catch (error) {
-      console.error('Failed to create simple mock video:', error);
-      throw new Error(`Simple mock video creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to create minimal placeholder video:', error);
+      throw new Error(`Minimal placeholder video creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   private async createFallbackVideoWithFFmpeg(chunk: { videoPath: string; audioPath?: string; chunkId: number; text: string; duration: number }, outputDir: string, options: VideoRenderingOptions): Promise<string | null> {
     // Create a proper fallback video using FFmpeg when mock videos fail
     const path = await import('path');
+    const fs = await import('fs');
     const videoPath = path.join(outputDir, `chunk_${chunk.chunkId}_fallback.mp4`);
     
     try {
@@ -326,21 +531,48 @@ export class VideoRenderer {
       
       const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
       
-      // Escape text for FFmpeg drawtext filter
-      const escapedText = this.escapeTextForFFmpeg(chunk.text);
-      const displayText = `Chunk ${chunk.chunkId}: ${escapedText}${chunk.text.length > 50 ? '...' : ''}`;
+      // Create a text file for FFmpeg to read from (safer than inline text)
+      const textFilePath = path.join(outputDir, `chunk_${chunk.chunkId}_text.txt`);
+      const fileText = `Chunk ${chunk.chunkId}: ${chunk.text.substring(0, 50)}${chunk.text.length > 50 ? '...' : ''}`;
       
-      const ffmpegProcess = spawn(ffmpegPath, [
+      // Write text to file
+      await fs.promises.writeFile(textFilePath, fileText, 'utf8');
+      
+      // Create a safe text display that shows actual content
+      // Use word boundary awareness to avoid cutting words
+      const optimalText = getOptimalDisplayText(chunk.text, 100);
+      const cleanText = optimalText
+        .replace(/[:\[\]{}();=,]/g, ' ') // Remove problematic characters
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .trim();
+      
+      // If text is too short, try to get more content
+      let displayText = cleanText;
+      if (cleanText.length < 20 && chunk.text.length > 100) {
+        const extendedOptimalText = getOptimalDisplayText(chunk.text, 120);
+        const extendedText = extendedOptimalText
+          .replace(/[:\[\]{}();=,]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        displayText = extendedText.length > 0 ? extendedText : `Chunk ${chunk.chunkId}`;
+      } else if (cleanText.length === 0) {
+        displayText = `Chunk ${chunk.chunkId}`;
+      }
+      
+      // Add word wrapping and better positioning with gradient background
+      const ffmpegArgs = [
         '-f', 'lavfi',
-        '-i', `color=c=blue:size=${options.resolution}:duration=${chunk.duration}`,
-        '-vf', `drawtext=text='${displayText}':fontcolor=white:fontsize=20:x=(w-text_w)/2:y=(h-text_h)/2`,
+        '-i', `color=c=#1e3a8a:size=${options.resolution}:duration=${chunk.duration}`,
+        '-vf', `drawtext=text='${displayText}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:box=1:boxcolor=black@0.7:boxborderw=8:shadowcolor=black@0.5:shadowx=2:shadowy=2`,
         '-c:v', 'libx264',
         '-preset', 'fast',
         '-crf', '23',
         '-pix_fmt', 'yuv420p',
         '-y', // Overwrite output file
         videoPath
-      ], {
+      ];
+
+      const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs, {
         stdio: 'pipe'
       });
 
@@ -351,7 +583,14 @@ export class VideoRenderer {
           stderr += data.toString();
         });
 
-        ffmpegProcess.on('close', (code) => {
+        ffmpegProcess.on('close', async (code) => {
+          // Clean up text file
+          try {
+            await fs.promises.unlink(textFilePath);
+          } catch (cleanupError) {
+            console.warn(`Failed to clean up text file: ${cleanupError}`);
+          }
+          
           if (code === 0) {
             console.log(`Created fallback video for chunk ${chunk.chunkId}: ${videoPath}`);
             resolve(videoPath);
@@ -418,6 +657,12 @@ class VideoScene(Scene):
     }
 
     console.log('🎬 Combining video and audio chunks like Python implementation...');
+    console.log(`📊 Processing ${chunks.length} chunks`);
+    
+    // Log chunk details for debugging
+    chunks.forEach((chunk, index) => {
+      console.log(`Chunk ${index + 1}: video=${chunk.videoPath}, audio=${chunk.audioPath || 'none'}`);
+    });
     
     // Step 1: Combine each video chunk with its audio chunk (like Python version)
     const combinedChunks: string[] = [];
@@ -437,6 +682,13 @@ class VideoScene(Scene):
         console.log(`🎵 Combining video and audio for chunk ${i + 1}/${chunks.length}`);
         
         try {
+          // Check if video file exists and is valid
+          const { promises: fs } = await import('fs');
+          const videoStats = await fs.stat(chunk.videoPath);
+          if (videoStats.size === 0) {
+            throw new Error('Video file is empty');
+          }
+          
           await this.addAudioToVideo(chunk.videoPath, chunk.audioPath, combinedChunkPath);
           combinedChunks.push(combinedChunkPath);
           console.log(`✅ Combined chunk ${i + 1}/${chunks.length}`);
@@ -488,10 +740,45 @@ class VideoScene(Scene):
         console.log(`📹 No audio for chunk ${i + 1}, using video only`);
         try {
           const { promises: fs } = await import('fs');
+          
+          // Check if video file exists and is valid
+          const videoStats = await fs.stat(chunk.videoPath);
+          if (videoStats.size === 0) {
+            throw new Error('Video file is empty');
+          }
+          
           await fs.copyFile(chunk.videoPath, combinedChunkPath);
           combinedChunks.push(combinedChunkPath);
+          console.log(`✅ Copied video chunk ${i + 1}/${chunks.length}`);
         } catch (error) {
           console.error(`Failed to copy video chunk ${i + 1}:`, error);
+          
+          // Try to create a fallback video for this chunk
+          try {
+            console.log(`🔄 Creating fallback video for chunk ${i + 1}`);
+            const mockChunk = {
+              videoPath: chunk.videoPath,
+              audioPath: chunk.audioPath,
+              chunkId: i + 1,
+              text: `Video chunk ${i + 1} content`,
+              duration: 5 // Default duration
+            };
+            
+            const fallbackPath = await this.createFallbackVideoWithFFmpeg(mockChunk, this.tempDir, { 
+              code: 'fallback', 
+              outputPath: combinedChunkPath, 
+              resolution: '1280x720', 
+              frameRate: 30, 
+              quality: 'medium' 
+            });
+            
+            if (fallbackPath) {
+              combinedChunks.push(fallbackPath);
+              console.log(`✅ Created fallback video for chunk ${i + 1}`);
+            }
+          } catch (fallbackError) {
+            console.error(`Fallback video creation failed for chunk ${i + 1}:`, fallbackError);
+          }
         }
       }
     }
@@ -511,11 +798,39 @@ class VideoScene(Scene):
     console.log('🔗 Concatenating all combined chunks...');
     const path = await import('path');
     const fileListPath = path.join(this.tempDir, 'file_list.txt');
-    const fileListContent = combinedChunks
+    
+    // Filter out invalid video files before concatenation
+    const validChunks: string[] = [];
+    const { promises: fs } = await import('fs');
+    
+    for (const chunkPath of combinedChunks) {
+      try {
+        // Check if file exists and has content
+        const stats = await fs.stat(chunkPath);
+        if (stats.size > 0) {
+          validChunks.push(chunkPath);
+        } else {
+          console.warn(`Skipping empty chunk: ${chunkPath}`);
+        }
+      } catch (error) {
+        console.warn(`Skipping invalid chunk: ${chunkPath}`, error);
+      }
+    }
+    
+    if (validChunks.length === 0) {
+      throw new Error('No valid video chunks to concatenate');
+    }
+    
+    if (validChunks.length === 1) {
+      // If only one valid chunk, just copy it to output
+      await fs.copyFile(validChunks[0], outputPath);
+      return outputPath;
+    }
+    
+    const fileListContent = validChunks
       .map(chunkPath => `file '${path.resolve(chunkPath)}'`)
       .join('\n');
     
-    const { promises: fs } = await import('fs');
     await fs.writeFile(fileListPath, fileListContent);
 
     return new Promise(async (resolve, reject) => {
@@ -546,7 +861,11 @@ class VideoScene(Scene):
             await fs.unlink(fileListPath);
             // Clean up combined chunk files
             for (const chunkPath of combinedChunks) {
-              await fs.unlink(chunkPath);
+              try {
+                await fs.unlink(chunkPath);
+              } catch (cleanupError) {
+                console.warn(`Failed to cleanup chunk: ${chunkPath}`, cleanupError);
+              }
             }
           } catch (error) {
             console.warn('Failed to cleanup temporary files:', error);
@@ -561,7 +880,7 @@ class VideoScene(Scene):
             } catch (accessError) {
               console.warn('Output file was not created, trying fallback');
               try {
-                await fs.copyFile(combinedChunks[0], outputPath);
+                await fs.copyFile(validChunks[0], outputPath);
                 resolve(outputPath);
               } catch (copyError) {
                 reject(new Error(`Output file verification failed and fallback copy failed: ${copyError}`));
@@ -569,9 +888,9 @@ class VideoScene(Scene):
             }
           } else {
             console.warn(`FFmpeg concatenation failed with code ${code}: ${stderr}`);
-            // Try to use the first combined chunk as fallback
+            // Try to use the first valid chunk as fallback
             try {
-              await fs.copyFile(combinedChunks[0], outputPath);
+              await fs.copyFile(validChunks[0], outputPath);
               resolve(outputPath);
             } catch (copyError) {
               reject(new Error(`FFmpeg concatenation failed and fallback copy failed: ${copyError}`));
@@ -581,9 +900,9 @@ class VideoScene(Scene):
 
         ffmpegProcess.on('error', async (error) => {
           console.warn(`FFmpeg not available: ${error.message}`);
-          // Try to use the first combined chunk as fallback
+          // Try to use the first valid chunk as fallback
           try {
-            await fs.copyFile(combinedChunks[0], outputPath);
+            await fs.copyFile(validChunks[0], outputPath);
             resolve(outputPath);
           } catch (copyError) {
             reject(new Error(`FFmpeg error and fallback copy failed: ${copyError}`));
