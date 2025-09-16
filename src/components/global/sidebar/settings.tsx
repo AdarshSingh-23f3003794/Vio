@@ -32,13 +32,13 @@ import { useTheme } from "next-themes";
 import { themes } from "@/lib/themes";
 import { Check, Monitor, Moon, Palette, Sun, User, Trash2, Loader2, Save } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { clientAccount } from "@/lib/appwrite-client";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const SettingsContent = () => {
+const SettingsContentInner = () => {
   const { theme: currentTheme, setTheme } = useTheme();
   const { user, signOut, refreshUser, getAuthenticatedFetch } = useAuth();
   const router = useRouter();
@@ -452,6 +452,26 @@ const SettingsContent = () => {
         </TabsContent>
       </Tabs>
     </div>
+  );
+};
+
+const SettingsContent = () => {
+  return (
+    <Suspense fallback={
+      <div className="animate-pulse space-y-6">
+        <div className="h-8 bg-muted rounded w-32"></div>
+        <div className="space-y-4">
+          <div className="h-6 bg-muted rounded w-24"></div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="h-32 bg-muted rounded"></div>
+            <div className="h-32 bg-muted rounded"></div>
+            <div className="h-32 bg-muted rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SettingsContentInner />
+    </Suspense>
   );
 };
 

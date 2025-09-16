@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Brain, BookOpen, Search, Target, Zap, ArrowRight, Clock, TrendingUp, Users, FileText, CheckCircle, AlertCircle, Check, BarChart3, Trash2 } from 'lucide-react';
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from 'next/navigation';
@@ -59,7 +59,7 @@ interface StudySession {
   endTime?: Date;
 }
 
-const AIAgentsPage = () => {
+const AIAgentsPageContent = () => {
   const { getAuthenticatedFetch } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'learning-path' | 'research' | 'study-session'>('learning-path');
@@ -1433,6 +1433,18 @@ const AIAgentsPage = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const AIAgentsPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    }>
+      <AIAgentsPageContent />
+    </Suspense>
   );
 };
 

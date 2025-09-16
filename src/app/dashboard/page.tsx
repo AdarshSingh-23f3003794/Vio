@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, ChangeEvent, FormEvent, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, ChangeEvent, FormEvent, useRef, useCallback, useMemo, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Trash, MoreVertical, X, Loader2, Pencil, Star, FolderPlus, ArrowUp, ArrowDown, Upload } from 'lucide-react';
 import { AiFillFilePdf, AiFillFileWord, AiFillHtml5, AiFillFileImage, AiFillFileText, AiFillFile } from 'react-icons/ai';
@@ -50,7 +50,7 @@ const getFileExtension = (name: string = ''): string => {
   return lastDot > 0 ? name.substring(lastDot + 1) : '';
 };
 
-const DashboardPage = () => {
+const DashboardPageContent = () => {
   const [input, setInput] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -802,6 +802,18 @@ const DashboardPage = () => {
         </Dialog>
       )}
     </div>
+  );
+};
+
+const DashboardPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    }>
+      <DashboardPageContent />
+    </Suspense>
   );
 };
 
