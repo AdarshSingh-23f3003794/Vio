@@ -40,21 +40,19 @@ Most AI grading products end with a score. Vio ends with a **teacher decision**.
 4. The teacher can edit the score, feedback, strengths, weaknesses, and suggestions.
 5. Nothing is shown as final until the teacher explicitly publishes it.
 
-This is Vio's product promise: **AI proposes; teachers dispose.**
+This is Vio's product promise: **AI proposes. Teachers decide.**
 
 ## The story behind Vio
 
-Vio did not begin as a hackathon idea. It was one of my first serious coding projects, built as a personal learning companion while I was still learning how to turn an idea into a working product.
+I entered Build Week knowing that I wanted to build for the Education track. I also knew that I did not want to submit another chatbot with a new label; I wanted to make something ambitious, useful, and genuinely different. For a while, however, I could not find the idea that felt right.
 
-When I started thinking about what to build for the Education track, I asked my Japanese language teacher a simple question: **“What should exist that would make everyday life easier for you, both as a teacher and as a student?”**
+So I decided to test GPT-5.6 Sol on the project I understood best: Vio, one of my first serious coding projects and originally a personal learning companion. I gave Codex the existing repository, the problems I could see in it, and the direction I wanted to explore. What impressed me was not a single clever answer. GPT-5.6 reasoned across the codebase, produced a structured implementation plan, and completed roughly 80% of the planned rebuild in the first major implementation pass.
 
-She described a problem hidden inside an ordinary routine. Students send homework through messages every day, filling her storage with files. She then has to check every conversation manually, work out who submitted, identify who did not, and keep separate notes so nobody is missed. The work is repetitive, difficult to track, and takes time away from teaching.
+That result changed the scale of what I believed I could build during the hackathon. It gave me room to move beyond a generic AI study assistant and focus on a harder education problem: how can AI accelerate assessment without taking authority away from the teacher?
 
-That conversation changed Vio's direction. The foundation of a learning platform already existed, but the classroom workflow did not. I realized Vio could become the place where students submit work, teachers see submission status at a glance, and AI prepares evidence-backed feedback without taking the final decision away from the teacher.
+That question became Vio's defining workflow. Students submit versioned work, AI prepares an evidence-backed evaluation, and the teacher reviews, overrides, and explicitly publishes the final result. Codex accelerated the repository analysis, implementation, testing, and production debugging; I remained responsible for the product direction, teacher/student experience, security boundaries, deployment decisions, and approval of every release.
 
-There was one catch: because the original Vio was built near the beginning of my coding journey, its architecture had grown messy and its AI assistant needed a major rethink. Instead of adding one more feature on top, I decided to rebuild the foundations. Working with Codex powered by GPT-5.6, I reorganized the codebase, consolidated the AI layer, and built the classroom and review workflow. The first major implementation pass completed roughly 80% of my planned rebuild, which surprised me. I then reviewed the result, made the product decisions, tested the teacher/student boundaries, debugged production failures, tightened security, and refined the experience through repeated deployments.
-
-Vio's most important feature therefore came from a real teacher's everyday problem, while its rebuild became an experiment in how far one person can go when human judgment and an AI engineering collaborator work together.
+Vio became both an education product and a demonstration of the way I believe AI software should be built: **AI moves the work forward; humans remain accountable for the decisions that matter.**
 
 ## Why Vio
 
@@ -137,7 +135,7 @@ The agent never receives unrestricted SQL access. It calls constrained internal 
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/AdarshSingh-ASR/Vio.git
+git clone https://github.com/AdarshSingh-23f3003794/Vio.git
 cd Vio
 npm ci
 ```
