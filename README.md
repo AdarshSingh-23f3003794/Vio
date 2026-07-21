@@ -92,17 +92,6 @@ Teachers often lose time moving between learning material, assignment tools, gra
 
 </details>
 
-## Three-minute demo story
-
-1. A teacher creates a classroom and evidence-grounded homework.
-2. A student joins and submits multimodal work.
-3. Vio evaluates the exact immutable submission version.
-4. The teacher reviews the evidence, changes the draft score with a reason, and publishes.
-5. The student sees teacher-authoritative feedback with AI content clearly labeled.
-6. The Vio agent answers a follow-up using memory and tools, then demonstrates safe recovery from a failed tool.
-
-This flow can be reproduced with two accounts and one short assignment; no seed data or mocked grading records are required.
-
 ## Architecture
 
 ```mermaid
