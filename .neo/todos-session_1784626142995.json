@@ -1,0 +1,30 @@
+[
+  {
+    "id": "inspect",
+    "content": "Inspect repository status, README diffs, commit style, identity, branch, and remote",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting repository state"
+  },
+  {
+    "id": "verify",
+    "content": "Verify README scope, links, HTML tag balance, and code fences",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Verifying README presentation update"
+  },
+  {
+    "id": "commit",
+    "content": "Stage only README.md and create a style-matching commit",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Committing README update"
+  },
+  {
+    "id": "push",
+    "content": "Push current main branch to origin and confirm final state",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Pushing main branch"
+  }
+]

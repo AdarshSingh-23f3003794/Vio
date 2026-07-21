@@ -1,0 +1,23 @@
+[
+  {
+    "id": "inspect-local",
+    "content": "Inspect available local Git metadata and identify unavailable status/auth checks",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting local repository and authentication"
+  },
+  {
+    "id": "inspect-destination",
+    "content": "Inspect destination repository existence, default branch, and current heads",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting destination repository history"
+  },
+  {
+    "id": "push-verify",
+    "content": "Determine whether safe push and verification can be performed in available runtime",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Assessing push and verification capability"
+  }
+]

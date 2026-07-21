@@ -1,0 +1,30 @@
+[
+  {
+    "id": "inspect",
+    "content": "Inspect Git state, diffs, history, identity, and cleanup scope",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting Git state and cleanup scope"
+  },
+  {
+    "id": "verify",
+    "content": "Verify references and preserved requirements content",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Verifying references and requirements content"
+  },
+  {
+    "id": "commit",
+    "content": "Stage exact cleanup files and create commit",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Staging exact cleanup files and committing"
+  },
+  {
+    "id": "push",
+    "content": "Push current branch and verify remote state",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Pushing current branch and verifying remote"
+  }
+]

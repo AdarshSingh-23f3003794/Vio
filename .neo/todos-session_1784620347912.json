@@ -1,0 +1,30 @@
+[
+  {
+    "id": "inspect",
+    "content": "Inspect Git state, README changes, identity, remotes, and GitHub access",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting repository and README changes"
+  },
+  {
+    "id": "verify",
+    "content": "Validate README Markdown links and formatting locally",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Validating README Markdown"
+  },
+  {
+    "id": "commit",
+    "content": "Stage only README.md and create style-matched commit",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Committing README changes"
+  },
+  {
+    "id": "push",
+    "content": "Push current branch to its configured remote and verify",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Pushing and verifying commit"
+  }
+]

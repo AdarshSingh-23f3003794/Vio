@@ -1,0 +1,30 @@
+[
+  {
+    "id": "t1",
+    "content": "Read rubric attachments and repository overview",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Reading rubric and repository overview"
+  },
+  {
+    "id": "t2",
+    "content": "Inspect implementation, design, tests, and documentation evidence",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting repository evidence"
+  },
+  {
+    "id": "t3",
+    "content": "Score categories and identify unsupported README claims",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Scoring claims and risks"
+  },
+  {
+    "id": "t4",
+    "content": "Deliver concise audit under 700 words",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Writing concise audit"
+  }
+]

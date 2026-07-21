@@ -1,0 +1,30 @@
+[
+  {
+    "id": "inspect",
+    "content": "Inspect repository status, diffs, references, and commit style",
+    "status": "in_progress",
+    "priority": "high",
+    "activeForm": "Inspecting repository state"
+  },
+  {
+    "id": "validate",
+    "content": "Validate expected cleanup and package.json syntax",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Validating cleanup"
+  },
+  {
+    "id": "commit",
+    "content": "Stage only three cleanup paths and commit",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Committing cleanup"
+  },
+  {
+    "id": "push",
+    "content": "Push main to origin and verify remote state",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Pushing and verifying"
+  }
+]

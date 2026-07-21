@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1",
+    "content": "Inspect repository state and destination access",
+    "status": "completed",
+    "priority": "high",
+    "activeForm": "Inspecting repository and destination"
+  },
+  {
+    "id": "2",
+    "content": "Push unchanged main branch to the new repository",
+    "status": "in_progress",
+    "priority": "high",
+    "activeForm": "Pushing to the new repository"
+  },
+  {
+    "id": "3",
+    "content": "Verify destination branch and commit",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Verifying destination"
+  }
+]
