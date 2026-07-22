@@ -43,6 +43,41 @@ Most AI grading products end with a score. Vio ends with a **teacher decision**.
 
 This is Vio's product promise: **AI proposes. Teachers decide.**
 
+## Product screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="images/AI%20Agents.png" alt="Vio AI learning workspace and agents" />
+      <br /><sub><strong>AI learning workspace</strong> — grounded documents, learning paths, adaptive study, and persistent memory.</sub>
+    </td>
+    <td width="50%">
+      <img src="images/Classroom%20management.png" alt="Vio classroom management workflow" />
+      <br /><sub><strong>Classroom management</strong> — role-scoped membership, assignments, and submission status.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="images/student%20submission%20and%20feedback.png" alt="Vio student submission and published feedback" />
+      <br /><sub><strong>Student submission and feedback</strong> — versioned attempts and teacher-published results.</sub>
+    </td>
+    <td width="50%">
+      <img src="images/Teacher%20homework%20check.png" alt="Vio teacher homework review" />
+      <br /><sub><strong>Teacher review</strong> — inspect the evaluated version, override with a reason, and publish explicitly.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="images/final-check-student.png" alt="Vio human-in-the-loop review interface" />
+      <br /><sub><strong>Human-in-the-loop assessment</strong> — AI remains a draft until the teacher makes the final decision.</sub>
+    </td>
+    <td width="50%">
+      <img src="images/settings.png" alt="Vio AI provider and memory settings" />
+      <br /><sub><strong>Production-minded architecture</strong> — provider fallback, private storage, durable memory, and constrained tools.</sub>
+    </td>
+  </tr>
+</table>
+
 ## The story behind Vio
 
 I entered Build Week knowing that I wanted to build for the Education track. I also knew that I did not want to submit another chatbot with a new label; I wanted to make something ambitious, useful, and genuinely different. For a while, however, I could not find the idea that felt right.
