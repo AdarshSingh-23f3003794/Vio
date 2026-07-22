@@ -6,7 +6,7 @@
 
 **An evidence-grounded AI education workspace where teachers stay in control of assessment.**
 
-[![Live demo](https://img.shields.io/badge/Live%20demo-Open%20Vio-7c3aed?style=for-the-badge&logo=render&logoColor=white)](https://vio-pcuh.onrender.com)
+[![Live demo](https://img.shields.io/badge/Live%20demo-Open%20Vio-7c3aed?style=for-the-badge&logo=render&logoColor=white)](https://youtu.be/tYECjn5F5uw)
 [![Track](https://img.shields.io/badge/OpenAI%20Build%20Week-Education-0f172a?style=for-the-badge&logo=openai&logoColor=white)](https://openai.devpost.com/)
 [![Built with](https://img.shields.io/badge/Built%20with-Codex%20%2B%20GPT--5.6-10a37f?style=for-the-badge&logo=openai&logoColor=white)](#how-we-built-vio-with-codex-and-gpt-56)
 
